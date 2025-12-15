@@ -1,0 +1,16 @@
+/ip firewall filter
+add action=drop chain=input comment="drop Winbox Brute Forces" dst-port=8291 \
+    log=yes log-prefix=BruteForcesWinbox protocol=tcp src-address-list=\
+    IP_BlackList_Winbox
+add action=add-src-to-address-list address-list=IP_BlackList_Winbox \
+    address-list-timeout=1d chain=input connection-state=new dst-port=8291 \
+    protocol=tcp src-address-list=SSH_BlackList_Winbox_3
+add action=add-src-to-address-list address-list=SSH_BlackList_Winbox_3 \
+    address-list-timeout=1m chain=input connection-state=new dst-port=8291 \
+    protocol=tcp src-address-list=SSH_BlackList_Winbox_2
+add action=add-src-to-address-list address-list=SSH_BlackList_Winbox_2 \
+    address-list-timeout=1m chain=input connection-state=new dst-port=8291 \
+    protocol=tcp src-address-list=SSH_BlackList_Winbox_1
+add action=add-src-to-address-list address-list=SSH_BlackList_Winbox_1 \
+    address-list-timeout=1m chain=input connection-state=new dst-port=8291 \
+    protocol=tcp
