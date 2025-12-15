@@ -1,0 +1,11 @@
+/ip firewall filter
+add action=drop chain=input comment="drop FTP Brute Forcers" dst-port=21 log=\
+    yes log-prefix=BruteForcesFtp protocol=tcp src-address-list=FTP_BlackList
+add action=add-dst-to-address-list address-list=FTP_BlackList \
+    address-list-timeout=1d chain=output content="530 Login incorrect" \
+    protocol=tcp
+add action=add-dst-to-address-list address-list=FTP_BlackList \
+    address-list-timeout=1d chain=output content="530 Login incorrect" \
+    protocol=tcp
+add action=accept chain=output content="530 Login incorrect" dst-limit=\
+    1/1m,9,dst-address/1m protocol=tcp
