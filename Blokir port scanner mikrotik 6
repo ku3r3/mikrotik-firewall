@@ -1,0 +1,47 @@
+Detection Scan
+/ip firewall address-list
+add list=scanner_blacklist address=0.0.0.0/32 comment="List for detected scanners" disabled=yes
+
+Rules
+/ip firewall filter
+add chain=input protocol=tcp dst-port=0-65535 \
+    action=add-src-to-address-list address-list=scanner_blacklist \
+    address-list-timeout=1d \
+    comment="Detect and add port scanners" \
+    connection-state=new \
+    src-address-list=!trusted_hosts
+	
+/ip firewall filter
+add chain=input protocol=tcp dst-port=0-65535 \
+    action=add-src-to-address-list address-list=port_scanners \
+    address-list-timeout=2w \
+    connection-state=new \
+    src-address-list=!trusted_hosts \
+    connection-limit=10,32
+
+Connection limits with same IP
+/ip firewall filter
+# Rule 1: Add source IP to "suspected_scanner" if it opens >5 new connections in 10 sec
+add chain=input connection-state=new protocol=tcp \
+    src-address-list=!trusted_hosts \
+    action=add-src-to-address-list address-list=suspected_scanner address-list-timeout=10s
+
+# Rule 2: If same IP appears again within 10s (i.e., multiple new connections), mark as scanner
+add chain=input connection-state=new protocol=tcp \
+    src-address-list=suspected_scanner \
+    action=add-src-to-address-list address-list=scanner_blacklist address-list-timeout=1d
+
+# Rule 3: Drop traffic from known scanners
+add chain=input src-address-list=scanner_blacklist action=drop comment="Drop port scanners"
+
+Forward chain for internal
+/ip firewall filter
+add chain=forward connection-state=new protocol=tcp \
+    src-address-list=!trusted_hosts \
+    action=add-src-to-address-list address-list=suspected_scanner_forward address-list-timeout=10s
+
+add chain=forward connection-state=new protocol=tcp \
+    src-address-list=suspected_scanner_forward \
+    action=add-src-to-address-list address-list=scanner_blacklist address-list-timeout=1d
+
+add chain=forward src-address-list=scanner_blacklist action=drop comment="Drop scanners to LAN"
