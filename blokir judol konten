@@ -1,4 +1,5 @@
 /ip firewall layer7-protocol
-add name=Block_Gambling_Sites regexp="^.+(casino|poker|bet|judi|togel|slot|baccarat|sbobet|qq)\.(com|net|org|cc|co|io|me).*"
+add name=Block_Gambling_Sites regexp="^.*\b(casino|bet|judi|slot|poker|sbobet|bola|win|games?|jackpot|lotto|baccarat|roulette)\b.*\.(com|net|org|info|asia|cc|top|me|win|site).*
+"
 /ip firewall filter
 add action=drop chain=forward layer7-protocol=Block_Gambling_Sites
